@@ -1,0 +1,1119 @@
+<sqlMappingSpec author="Cr8Content.com"
+                sqlMappingDocument="${project_loc}/src/main/resources/resources/docs/Cr8WebDAO.xsm"
+                keyGenerationPolicy="postgres_seq"
+                sequenceName="%t_PKSeq"
+                omitColumns="date_last_maint">
+
+  <connection driverId="POSTGRES" driverUrl="LOCAL" uid="cr8web" pwd="2cr8Web"/>
+
+  <objectProperties basepath="./src/main/java" package="com.ai.aiweb.dao.dvo"
+                    useJavaObjects="true" useDirtyObjectDetection="true"/>
+
+  <daoProperties package="com.ai.aiweb.dao" typePrefix="Ai,Cr8" typeSuffix="PBO"/>
+
+  <query id="UserGroupMbrs" noDvo="true" package="com.ai.aiweb.social.pbo" className="AiUserGroupMemberPBO"
+         sql='select user_group_id_ck "userGroupIdCk", user_id_ck "userIdCk",  group_perm "groupPerm",(b.first_name || &apos; &apos; || b.last_name) "name",
+             date_joined "dateJoined", b.picture_url "pictureUrl", b.title "title",  o.name "organizationName"
+            from ai_user_group_member a join ai_user b on a.user_id_ck = b.user_id_pk join ai_organization o on b.organization_id_fk = o.organization_id_pk'>
+    <finder id="byGroupId" where="user_group_id_ck = :userGroupIdCk order by b.last_name" />
+  </query>
+
+  <query id="GeoFences" noDvo="true"
+         sql='delete from ai_geofence where geofence_id_ck in (select geofence_id_ck from ai_project_entity_geofence where project_id_ck = :projectId and entity_id_fk = :projectEntityId and entity_type_fk = :projectEntityType)'>
+    <finder id="byProjectAndEntitytAndTypeId"/>
+  </query>
+
+  <table name="ai_department" genDvoFromTable="true">
+    <finder id="byId" where="department_id_pk = :departmentIdPk"/>
+    <finder id="byOrgIdAndName" where="organization_id_fk = :organizationIdFk and name = :name"/>
+  </table>
+
+  <table name="ai_department_member" keyGenerationPolicy="none" genDvoFromTable="true">
+    <finder id="byDepartmentIdAndMemberId" where="department_id_fk = :departmentIdFk and user_id_fk = :userIdFk"/>
+  </table>
+
+  <table name="ai_password_auth_requirements"  genDvoFromTable="true" keyGenerationPolicy="none">
+    <finder id="byId" where="organization_id_cfk = :organizationIdCfk and department_id_cfk = :departmentIdCfk"/>
+  </table>
+
+
+  <table name="ai_bookmark" keyGenerationPolicy="none" genDvoFromTable="true" inheritClassName="com.ai.aiweb.project.pbo.AiBookmarkPBO">
+    <finder id="byProjectAndAssetId" where="project_id_ck = :projectIdCk and asset_id_ck = :assetIdCk order by frame_nbr_ck"/>
+  </table>
+
+  <table name="ai_bookmark_attachment" keyGenerationPolicy="none" genDvoFromTable="true" inheritClassName="com.ai.aiweb.project.pbo.AiBookmarkAttachmentPBO">
+    <finder id="byProjectAndAssetId" where="project_id_ck = :projectIdCk and asset_id_ck = :assetIdCk and frame_nbr_ck = :frameNbrCk"/>
+  </table>
+
+
+  <!-- User Groups -->
+  <table name="ai_user_group" genDvoFromTable="true" inheritClassName="com.ai.aiweb.social.pbo.AiUserGroupPBO">
+    <finder id="byName" where="group_name = :groupName"/>
+    <finder id="byOrgId" where="organization_id_fk = :organizationIdFk"/>
+    <finder id="byGroupId" where="user_group_id_pk = :userGroupIdPk"/>
+    <finder id="byAdmin" where="group_admin_user_id_fk = :groupAdminUserFk"/>
+    <finder id="byAdmin" where="group_admin_user_id_fk = :groupAdminUserFk"/>
+    <finder id="byUserId"
+             where="exists ( select 1 from ai_user_group_member where user_group_id_ck = user_group_id_ck and user_id_ck = :userIdCk) order by group_name" />
+  </table>
+
+
+  <table name="ai_user_group_member"  keyGenerationPolicy="none" genDvoFromTable="true" inheritClassName="com.ai.aiweb.social.pbo.AiUserGroupMemberPBO">
+    <finder id="byGroupId" where="user_group_id_ck = :userGroupIdCk"/>
+  </table>
+
+
+  <query id="UserGroupMbrs" noDvo="true" package="com.ai.aiweb.social.pbo" className="AiUserGroupMemberPBO"
+            sql='select user_group_id_ck "userGroupIdCk", user_id_ck "userIdCk",  group_perm "groupPerm",(b.first_name || &apos; &apos; || b.last_name) "name",
+             date_joined "dateJoined", b.picture_url "pictureUrl", b.title "title",  o.name "organizationName"
+            from ai_user_group_member a join ai_user b on a.user_id_ck = b.user_id_pk join ai_organization o on b.organization_id_fk = o.organization_id_pk'>
+    <finder id="byGroupId" where="user_group_id_ck = :userGroupIdCk order by b.last_name" />
+  </query>
+
+  <query id="GroupsBelongedTo" noDvo="true" package="com.ai.aiweb.social.pbo" className="AiUserGroupPBO"
+         sql='select g.user_group_id_pk "userGroupIdPk", g.user_group_id_pk "id", g.admin_user_id_fk "adminUserIdFk",  g.group_name "groupName", g.group_name "name", g.details "details",
+            g.owner_id_fk "ownerIdFk", g.date_created "dateCreated", g.description "description", g.picture_url "pictureUrl",
+           (u.first_name || &apos; &apos; || u.last_name) "adminName", u.picture_url "adminPictureUrl"
+            from ai_user_group g join ai_user u on g.admin_user_id_fk = u.user_id_pk'>
+    <finder id="byUserId" where="g.admin_user_id_fk = :userIdPk OR exists ( select 1 from ai_user_group_member gm where g.user_group_id_pk = gm.user_group_id_ck and gm.user_id_ck = :userIdPk)" />
+  </query>
+
+  <!-- Messaging -->
+  <table name="ai_message"  genDvoFromTable="true" keyGenerationPolicy="uuid">
+    <finder id="byCreatorId"  where="creator_id_pk = :creatorIdPk order by time_created desc"/>
+    <finder id="byMessageType"  where="message_type_fk = :messageTypeFk"/>
+  </table>
+
+  <table name="ai_message_type"  genDvoFromTable="true" keyGenerationPolicy="none"/>
+  <table name="ai_message_recipient"  genDvoFromTable="true" keyGenerationPolicy="none"/>
+  <table name="ai_message_group"  genDvoFromTable="true" keyGenerationPolicy="none"/>
+  <table name="ai_message_attachment"  genDvoFromTable="true" keyGenerationPolicy="none"/>
+
+
+  <table name="ai_notification" genDvoFromTable="true" keyGenerationPolicy="uuid" inheritClassName="com.ai.aiweb.notification.pbo.Cr8NotificationPBO" >
+    <finder id="byType" where="(recipient_id_fk = :recipientIdFk  and notification_type_fk = :notificationTypeFk)  order by date_created desc"/>
+    <finder id="byInBox" where="((recipient_id_fk = :recipientIdFk and msg_folder_id_fk = 101 ) or (originator_id_fk = :recipientIdFk and msg_folder_id_fk = 102 ))   order by date_created desc"/>
+    <finder id="byInBoxParent" where="((recipient_id_fk = :recipientIdFk and msg_folder_id_fk = 101 ) or (originator_id_fk = :recipientIdFk and msg_folder_id_fk = 102 ))  and msg_id=:msgId and is_parent=true"/>
+    <finder id="byTrash" where="((recipient_id_fk = :recipientIdFk and msg_folder_id_fk = 101 ) or (originator_id_fk = :recipientIdFk and msg_folder_id_fk = 102 ))  order by date_created desc"/>
+    <finder id="byDraft" where="((originator_id_fk = :userIdFk or recipient_id_fk = :userIdFk ) and msg_folder_id_fk = 104)   order by date_created desc"/>
+    <finder id="byAll" where="(recipient_id_fk = :recipientIdFk or originator_id_fk = :recipientIdFk) and notification_type_fk not in ( 'GP', 'FP' )order by date_created desc"/>
+    <finder id="byFolderType" where="(recipient_id_fk = :recipientIdFk or originator_id_fk = :recipientIdFk) and e and and msg_folder_id_fk = :msgFolderIdFk order by date_created desc"/>
+    <finder id="byConnectionRequest" where="(recipient_id_fk = :recipientIdFk or originator_id_fk = :recipientIdFk) and notification_type_fk = 'FR' order by date_created desc" ></finder>
+  </table>
+
+  <table name="ai_notification_archive" noDvo="true" keyGenerationPolicy="none"/>
+
+  <table name="ai_msg_folder"  keyGenerationPolicy="none"/>
+
+  <!-- Orgs -->
+
+  <table name="ai_organization" genDvoFromTable="true" inheritClassName="com.ai.aiweb.organization.pbo.AiOrganizationPBO">
+     <finder id="byName" where="name ilike :name"/>
+    <finder id="bySubdomain" where="cr8_subdomain ilike :subDomain"/>
+     <finder id="byAll" where="organization_id_pk > 1"/>
+    <finder id="byAssetId" where="organization_id_pk in (select u.organization_id_fk from ai_organization org, ai_user_asset a, ai_user u where a.asset_id_pk = :assetIdPk and a.owner_id_fk = u.user_id_pk)"/>
+   </table>
+
+  <query id="OrgMbrCount" noDvo="true" className="Long"
+         sql='select count(*) from ai_user where organization_id_fk = :organizationIdFk'>
+
+    <finder id="byOrgId"/>
+
+  </query>
+
+  <table name="ai_billing_net_terms" keyGenerationPolicy="none"/>
+
+  <table name="ai_address">
+    <finder id="byOrgId" where="name organization_id_ck = :organizationIdPk"/>
+    <finder id="byAllOrgId" where="exists( select address_id_ck from ai_organization_address where organization_id_ck = :organizationIdPk )"/>
+  </table>
+
+  <table name="ai_organization_address" keyGenerationPolicy="none">
+    <finder id="byOrgId" where="organization_id_ck = :organizationIdPk"/>
+  </table>
+
+
+  <!-- Users -->
+  <table name="ai_user" genDvoFromTable="true" inheritClassName="com.ai.aiweb.user.pbo.AiUserPBO">
+    <finder id="byEmail" where="email = :email"/>
+    <finder id="byUserName" where="user_name ilike :userName and organization_id_fk = :organizationIdFk"/>
+    <finder id="byUserNameExact" where="user_name = :userName  and organization_id_fk = :organizationIdFk"/>
+    <finder id="byCr8Admin" where="user_role_fk = 'MSADMIN' or user_role_fk = 'SADMIN' and organization_id_fk = :organizationIdFk"/>
+    <finder id="byOrgId" where="organization_id_fk = :organizationIdFk order by last_name"/>
+    <finder id="byEmailAndOrgId" where="organization_id_fk = :organizationIdFk and email = :email order by last_name"/>
+  </table>
+
+  <query id="UserSkel" noDvo="true" package="com.ai.aiweb.user.pbo" className="AiUserPBO"
+         sql='select user_id_pk "userIdPk",first_name "firstName", last_name "lastName", email "email", picture_url "pictureUrl",  title "title",
+              office_location "officeLocation", department "department" from ai_user'>
+   <finder id="byOrgId" where="organization_id_fk = :organizationIdFk order by last_name limit 2000"/>
+   <finder id="byOrgShareAdmins" where="exists ( select user_id_fk from ai_project_share_admin where user_id_pk = user_id_fk and project_id_fk = :projectIdFk ) order by last_name"/>
+
+  </query>
+  
+  <query id="OrgUserSearch" noDvo="true" package="com.ai.aiweb.user.pbo" className="AiUserPBO"
+         sql='select u.user_id_pk "userIdPk", user_name "userName", user_role_fk "userRoleFk", first_name "firstName",
+          email "email", country_code_fk "countryCodeFk", continent_code "continentCode", last_name "lastName", picture_url "pictureUrl",
+          latitude_last_logged_in "latitude", longitude_last_logged_in "longitude",
+          location_last_logged_in "location", is_validated "isValidated", is_active "isActive", is_deleted "isDeleted", is_locked "isLocked" from ai_user u, ai_user_credentials c'>
+
+    <finder id="byOnline" where="organization_id_fk = :organizationIdFk and u.user_id_pk = c.user_id_pk and c.is_active = true  and c.is_validated = true and exists( select user_id_fk from ai_topic_subscriber where u.user_id_pk = user_id_fk) order by last_name"/>
+    <finder id="byOffline" where="organization_id_fk = :organizationIdFk and u.user_id_pk = c.user_id_pk and c.is_active = true  and c.is_validated = true and not exists ( select user_id_fk from ai_topic_subscriber where u.user_id_pk  = user_id_fk) order by last_name"/>
+    <finder id="byAll" where="organization_id_fk = :organizationIdFk  and u.user_id_pk = c.user_id_pk and c.is_active = true and c.is_validated = true order by last_name"/>
+    <finder id="byAdminOnline" where="organization_id_fk = :organizationIdFk  and u.user_id_pk = c.user_id_pk and exists( select user_id_fk from ai_topic_subscriber where u.user_id_pk = user_id_fk) order by last_name"/>
+    <finder id="byAdminOffline" where="organization_id_fk = :organizationIdFk  and u.user_id_pk = c.user_id_pk and not exists ( select user_id_fk from ai_topic_subscriber where u.user_id_pk  = user_id_fk) order by last_name"/>
+  </query>
+
+  <query id="NameSearch" noDvo="true" package="com.ai.aiweb.user.pbo" className="AiUserPBO"
+         sql='select user_id_pk "userIdPk", first_name "firstName", last_name "lastName", user_name "userName", picture_url "pictureUrl", user_role_fk "userRoleFk"  from ai_user '>
+
+    <finder id="byLastName" where="last_name ilike :lastName and user_role_fk = 'SUSER' limit 250" />
+    <finder id="byFirstName" where="first_name ilike :firstName and user_role_fk = 'SUSER' limit 250" />
+    <finder id="byFirstOrLastName" where="(first_name ilike :searchName or last_name ilike :searchName or first_name || ' ' || last_name ilike :searchName) and user_role_fk = 'SUSER' limit 250" />
+    <finder id="byFirstOrLastNameRoyalty" where="(first_name ilike :searchName or last_name ilike :searchName or first_name || ' ' || last_name ilike :searchName) and user_role_fk = 'SUSER' limit 250" />
+    <finder id="byFirstOrLastNameOrUserNameAdmin" where="(first_name ilike :searchName or last_name ilike :searchName or user_name ilike :searchName or first_name || ' ' || last_name ilike :searchName) limit 250" />
+  </query>
+
+  <table name="ai_user_role"  keyGenerationPolicy="none" genDvoFromTable="true">
+    <finder id="byRoleId" where="user_role_pk =:userRolePk"/>
+  </table>
+
+
+  <table name="ai_project_upload_set" keyGenerationPolicy="none" genDvoFromTable="true">
+    <finder id="byUploadKey" where="project_upload_key_pk = :projectUploadKeyPk"/>
+  </table>
+
+  <query id="ProjectMembers" noDvo="true" package="com.ai.aiweb.user.pbo" className="AiUserPBO"
+         sql = 'select u.user_id_pk "userIdPk", u.first_name "firstName",u.last_name "lastName", u.email, u.cell_phone_nbr "cellPhoneNbr", u.picture_url "pictureUrl"
+         , u.preferences, u.allow_texting "allowTexting"
+         from ai_user u, ai_project p , ai_user_credentials c
+         where p.project_id_pk =  :projectIdCk and p.owner_id_fk = u.user_id_pk  and u.user_id_pk = c.user_id_pk and c.is_active = true
+         union
+         select u.user_id_pk "userIdPk", u.first_name "firstName",u.last_name "lastName",  u.email ,  u.cell_phone_nbr "cellPhoneNbr", u.picture_url "pictureUrl"
+         , u.preferences, u.allow_texting "allowTexting"
+         from ai_user u, ai_project_member pm , ai_user_credentials c
+         where pm.project_id_ck =  :projectIdCk  and pm.user_id_ck = u.user_id_pk  and u.user_id_pk = c.user_id_pk and c.is_active = true
+         union
+         select distinct u.user_id_pk "userIdPk", u.first_name "firstName", u.last_name "lastName", u.email , u.cell_phone_nbr "cellPhoneNbr", u.picture_url "pictureUrl", u.preferences, u.allow_texting "allowTexting"
+         from ai_user u, ai_project_group pg, ai_user_group_member gm, ai_user_credentials c
+         where pg.project_id_ck =  :projectIdCk  and  pg.user_group_id_ck = gm.user_group_id_ck and gm.user_id_ck = u.user_id_pk and u.user_id_pk = c.user_id_pk and c.is_active = true'>
+     <finder id="byProjectId"/>
+  </query>
+
+  <query id="UsersInMyProjectsAndGroups" noDvo="true" package="com.ai.aiweb.user.pbo" className="AiUserPBO"
+         sql='select distinct u.user_id_pk "userIdPk" from ai_user u, ai_project_member m, ai_project p
+         	      where m.user_id_ck = u.user_id_pk and m.project_id_ck = p.project_id_pk and p.project_category_fk = &apos;SHARED&apos;
+         		    and u.user_id_pk != p.owner_id_fk and m.user_id_ck != :userIdPk
+         	    union
+         		  select distinct u.user_id_pk "userIdPk" from ai_user u, ai_project p, ai_project_group g,
+         		    ai_user_group_member m,	ai_user_group ug where g.project_id_ck = p.project_id_pk and  u.user_id_pk = m.user_id_ck
+         		    and ug.user_group_id_pk = m.user_group_id_ck
+         		    and exists ( select z.user_id_ck from ai_user_group_member z, ai_project_group pg where z.user_id_ck = :userIdPk  ) and m.user_id_ck != :userIdPk'>
+    <finder id="byUserId"/>
+  </query>
+
+  <query id="PrivateContentLibId" noDvo="true"  className="Long"
+    sql = "select project_id_pk from ai_project where project_category_fk = 'PRIVATE_CONTENT' and owner_id_fk = :userIdPk">
+
+     <finder id="byUserId"/>
+   </query>
+
+  <orm baseTable="ai_color_theme" keyGenerationPolicy="none" genDvoFromTable="true" baseTableJoin="a" baseRelationshipsOnly="true" includeTables="ai_color_theme_entry">
+    <finder id="byThemeName" where="name_ck = :nameCk"/>
+  </orm>
+
+  <table name="ai_color_theme_entry" keyGenerationPolicy="none" genDvoFromTable="true" baseTableJoin="t">
+    <finder id="byName" where="name_cfk = :name"/>
+  </table>
+
+  <table name="ai_user_credentials" keyGenerationPolicy="none"/>
+
+  <table name="ai_user_two_factor_cookie">
+    <finder id="byUserId" where="user_id_fk =:userIdFk"/>
+    <finder id="byId" where="cookie_id_ck =:cookie_id_ck"/>
+  </table>
+
+   <!-- Projects -->
+
+  <table name="ai_project" genDvoFromTable="true" inheritClassName="com.ai.aiweb.project.pbo.AiProjectPBO">
+    <finder id="byProjectId" where="project_id_pk = :projectIdPk"/>
+    <finder id="byMPrivateContentLib" where="owner_id_fk = :ownerId and project_category_fk = 'PRIVATE_CONTENT'"/>
+    <finder id="byOwnerId" where="owner_id_fk = :ownerId order by title" />
+    <finder id="byAssetId" where="where project_id_pk in ( select project_id_ck from ai_project_folder_asset where asset_id_ck = :assetIdCk and project_category_fk = 'SHARED')  order by title"/>
+    <finder id="privateContentLibAndSharedProjectsByAssetId" where="where project_id_pk in ( select project_id_ck from ai_project_folder_asset where asset_id_ck = :assetIdCk )  order by title"/>
+    <finder id="byOwnerAdminAndIsDeleted" where="(is_deleted = true and project_category_fk = 'SHARED' and owner_id_fk = :userIdPk)
+    OR project_id_pk in (select p.project_id_pk from ai_project p, ai_project_member m
+    					 where p.project_id_pk = m.project_id_ck and p.is_deleted = true and m.user_id_ck = :userIdPk and m.member_perm = 'a'
+    					union
+    					 select pg.project_id_ck from ai_project p, ai_project_group pg, ai_user_group ug, ai_user_group_member gm where pg.project_id_ck = p.project_id_pk and p.is_deleted = false
+    					 and pg.group_perm = 'a' and pg.user_group_id_ck = ug.user_group_id_pk and ug.user_group_id_pk = gm.user_group_id_ck and gm.user_id_ck = :userIdPk
+    					)"/>
+  </table>
+
+  <table name="ai_project_dashboard" genDvoFromTable="true" />
+
+  <table name="ai_project_permission" genDvoFromTable="true"  keyGenerationPolicy="none"/>
+
+  <table name="ai_project_owned_project_pinned" genDvoFromTable="true"  keyGenerationPolicy="none">
+    <finder id="byOwnerId" where="owner_id_ck =:ownerIdCk order by pinned_order asc"/>
+  </table>
+
+  <table name="ai_project_member_of_project_pinned" genDvoFromTable="true"  keyGenerationPolicy="none">
+    <finder id="byUserId" where="user_id_ck =:userIdCk order by pinned_order asc"/>
+  </table>
+
+  <query  className="AiProjectPBO" package="com.ai.aiweb.project.pbo" id="ProjectAccess" noDvo="true"
+          sql='select project_id_pk "projectIdPk", project_category_fk "projectCategoryFk", owner_id_fk "ownerIdFk", a.title "title", date_created "dateCreated", last_modified_by_id_fk "lastModifiedByIdFk",
+                          first_name "ownerFirstName", last_name "ownerLastName", a.picture_url "pictureUrl", a.is_user_profile_pic "isUserProfilePic", a.date_last_maint "dateModified", description "description" ,
+                           a.space_used "spaceUsed" from ai_project a, ai_user c
+                           where a.owner_id_fk = c.user_id_pk and a.is_deleted = false and exists ( select 1 from ai_project_member b where a.project_id_pk = b.project_id_ck and user_id_ck = :userIdPk)
+                         union
+                         select project_id_pk "projectIdPk", project_category_fk "projectCategoryFk", owner_id_fk "ownerIdFk", b.title "title", date_created "dateCreated",last_modified_by_id_fk "lastModifiedByIdFk",
+                           first_name "ownerFirstName", last_name "ownerLastName", b.picture_url "pictureUrl" , b.is_user_profile_pic "isUserProfilePic", b.date_last_maint "dateModified", description "description", b.space_used "spaceUsed"
+                            from ai_project b, ai_user c
+                           where b.owner_id_fk = c.user_id_pk and b.is_deleted = false and b.project_id_pk in (select project_id_ck from ai_project_group where user_group_id_ck in( select a.user_group_id_pk from ai_user_group a where
+                            exists ( select 1 from ai_user_group_member where a.user_group_id_pk = user_group_id_ck and user_id_ck = :userIdPk )))
+                   order by 6 asc'>
+    <finder id="byUserId"/>
+  </query>
+
+  <query className="AiProjectPBO" package="com.ai.aiweb.project.pbo" id="ProjectWithMetadata" noDvo="true"
+    sql='select project_id_pk "projectIdPk", project_category_fk "projectCategoryFk", owner_id_fk "ownerIdFk", a.title "title", date_created "dateCreated", last_modified_by_id_fk "lastModifiedByIdFk",
+                              first_name "ownerFirstName", last_name "ownerLastName", a.picture_url "pictureUrl", a.is_user_profile_pic "isUserProfilePic", a.date_last_maint "dateModified", description "description" from ai_project a, ai_user c'>
+    <finder id="byProjectId" where="project_id_pk = :projectIdPk and a.owner_id_fk = c.user_id_pk and a.is_deleted = false"/>
+    <finder id="byUserShareCenter" where="owner_id_fk = :ownerId and project_category_fk = 'SHARE_CENTER' and a.owner_id_fk = c.user_id_pk and a.is_deleted = false "/>
+  </query>
+
+
+  <query className="AiProjectSharePBO" package="com.ai.aiweb.project.pbo" id="ProjectShare" noDvo="true"
+    sql='select project_id_pk "projectIdPk", project_category_fk "projectCategoryFk", owner_id_fk "ownerIdFk", title "title", date_created "dateCreated", last_modified_by_id_fk "lastModifiedByIdFk",
+                              description "description", last_modified_by_id_fk "lastModifiedByIdFk", is_deleted "isDeleted", space_used "spaceUsed" from ai_project'>
+    <finder id="byProjectId" where="project_id_pk = :projectIdPk"/>
+    <finder id="byOwnerId" where="owner_id_fk = :ownerId and project_category_fk = 'SHARE_CENTER' and is_deleted = false"/>
+  </query>
+
+  <query className="Long" id="ProjectShareAssetCount" noDvo="true"
+   sql='select count(*) from ai_project_share_asset where project_id_ck = :projectIdCk'>
+    <finder id="byProjectId"/>
+  </query>
+
+  <query className="Long" id="ProjectShareRecipientCount" noDvo="true"
+   sql='select count(*) from ai_project_share_recipient where project_id_fk = :projectIdFk'>
+    <finder id="byProjectId"/>
+  </query>
+
+
+  <table name="ai_project_share_asset"  keyGenerationPolicy="none" genDvoFromTable="true" inheritClassName="com.ai.aiweb.project.pbo.AiProjectShareAssetPBO">
+    <finder id="byProjectId" where="project_id_ck =:projectIdCk"/>
+  </table>
+
+
+  <table name="ai_project_share_recipient"  keyGenerationPolicy="none"  genDvoFromTable="true" inheritClassName="com.ai.aiweb.project.pbo.AiProjectShareRecipientPBO">
+    <finder id="byProjectId" where="project_id_fk =:projectIdFk"/>
+    <finder id="ContentViewedByProjectId" where="project_id_fk =:projectIdFk and recipient_id_pk in (select distinct recipient_id from ai_project_share_event where project_id = :projectIdFk and project_share_event_type_fk = 'ASSET_ACCESS')"/>
+    <finder id="LinkAccessByProjectId" where="project_id_fk =:projectIdFk and recipient_id_pk in (select distinct recipient_id from ai_project_share_event where project_id = :projectIdFk and project_share_event_type_fk = 'LINK_ACCESS')"/>
+  </table>
+
+  <table name="ai_project_share_admin"  keyGenerationPolicy="none" genDvoFromTable="true">
+    <finder id="byProjectId" where="project_id_ck =:projectIdCk"/>
+  </table>
+
+  <table name="ai_project_share_security_profile" inheritClassName="com.ai.aiweb.project.pbo.AiProjectShareSecurityProfilePBO">
+    <finder id="byProjectId" where="project_id_fk =:projectIdFk and profile_type_fk = 'PROJECT'"/>
+  </table>
+
+  <table name="ai_project_share_event" genDvoFromTable="true">
+    <finder id="LinkSendByLinkId" where="link_id =:linkId and project_share_event_type_fk = 'LINK_SEND'"/>
+    <finder id="LockedByLinkId" where="link_id =:linkId and project_share_event_type_fk = 'PASSWORD_LOCK'"/>
+  </table>
+
+
+  <query className="Long" id="ShareContentViews" noDvo="true"
+   sql="select count(*) from ai_project_share_event where project_share_event_type_fk = 'ASSET_ACCESS' and recipient_id = :recipientIdPk ">
+    <finder id="byRecipientId"/>
+  </query>
+
+  <query className="Long" id="SharePasswordAttempts" noDvo="true"
+   sql="select count(*) from ai_project_share_event where project_share_event_type_fk = 'PASSWORD_FAIL' and is_active =  true and link_id = :linkId ">
+    <finder id="byLinkId"/>
+  </query>
+
+
+  <query className="Long" id="TotalFileSize" noDvo="true"
+   sql='select CAST(sum( av.size ) as bigint) from ai_user_asset_version av
+     inner join ai_project_folder_asset pfa on pfa.asset_id_ck = av.asset_id_ck
+     inner join ai_project p on p.project_id_pk = pfa.project_id_ck
+     where version_is_deleted = false and p.owner_id_fk = :ownerIdFk and pfa.is_parent_folder_deleted = false'>
+    <finder id="byOwner"/>
+  </query>
+
+  <query className="Long" id="TotalProjFileSize" noDvo="true"
+   sql='select CAST(sum( size ) as bigint) from ai_user_asset a
+       inner join ai_user_asset_version av on a.asset_id_pk = av.asset_id_ck
+       inner join ai_project_folder_asset pfa on pfa.asset_id_ck = av.asset_id_ck
+       where a.is_deleted = false and pfa.project_id_ck = :projectIdCk and pfa.is_parent_folder_deleted = false
+       and a.file_category_fk != &apos;FOLDER&apos;'>
+    <finder id="byProject"/>
+  </query>
+
+
+  <query className="Long" id="TotalProjFileCount" noDvo="true"
+   sql='select count(*) from ai_user_asset a, ai_project_folder_asset pfa, ai_project p where project_id_ck = :projectIdPk
+     and pfa.project_Id_ck = p.project_id_pk
+     and a.asset_id_pk = pfa.asset_id_ck and pfa.is_parent_folder_deleted = false and a.is_deleted = false
+     and a.file_category_fk != &apos;FOLDER&apos;'>
+    <finder id="byProject"/>
+  </query>
+
+
+  <query className="Long" id="TotalUserFileCount" noDvo="true"
+   sql='select count(*) from ai_user_asset a, ai_project_folder_asset pfa, ai_project p where p.owner_id_fk = :userIdPk
+        and pfa.project_Id_ck = p.project_id_pk
+        and a.asset_id_pk = pfa.asset_id_ck and pfa.is_parent_folder_deleted = false and a.is_deleted = false
+        and a.file_category_fk != &apos;FOLDER&apos;'>
+    <finder id="byUser"/>
+  </query>
+
+  <query className="Long" id="OwnedProjectCount" noDvo="true"
+   sql='select count(*) from ai_project where owner_id_fk = :ownderIdPk and not project_category_fk = &apos;SHARE_CENTER&apos;'>
+    <finder id="byOwner"/>
+  </query>
+
+  <query className="Long" id="MemberOfProjectCount" noDvo="true"
+   sql='select count(*) from ai_project_member where user_id_ck = :ownderIdFk and project_id_ck in (select b.project_id_pk from ai_project b where owner_id_fk != :ownerIdFk )
+    and member_perm in (&apos;a&apos;, &apos;d&apos;)
+   '>
+    <finder id="byOwner"/>
+  </query>
+
+  <table name="ai_project_folder_asset"  keyGenerationPolicy="none">
+    <finder id="RootFolderByProjectId" where="project_id_ck = :projectIdCk and folder_asset_id_ck = asset_id_ck  "/>
+    <finder id="ParentFolderByAssetIdAndProjectId" where="asset_id_ck = :assetIdCk and project_id_ck = :projectIdCk and is_parent_folder_deleted = false"/>
+    <finder id="ByAssetIdNoSymLink" where="asset_id_ck = :assetIdCk  and is_sym_link = false"/>
+  </table>
+
+  <query className="AiLinkedProjectAsset" package="com.ai.aiweb.project.dvo" id="LinkedAssetsForProject" noDvo="true"
+     sql='select project_id_pk "projectId", asset_id_ck "assetId", p.title "title", u.picture_url "ownerPictureUrl", p.picture_url "projectPictureUrl", first_name ||  &apos; &apos; || last_name "ownerName",
+          is_sym_link "isSymLink" from ai_project p
+         inner join ai_project_folder_asset f on p.project_id_pk = f.project_id_ck
+         inner join ai_user u on f.owner_id_fk = user_id_pk
+         where f.asset_id_ck = :assetIdFk and is_sym_link = true'>
+    <finder id="byAssetId"/>
+  </query>
+
+  <orm  baseTable="ai_geofence" genDvoFromTable="true" baseTableJoin="geo" baseRelationshipsOnly="true">
+    <finder id="byGeofenceId" where="geofenceIdPk = :geofenceIdPk"/>
+  </orm>
+
+  <table name="ai_project_entity_geofence" genDvoFromTable="true" keyGenerationPolicy="none" extends="ai_geofence">
+    <finder id="byProjectId" where="a.project_id_ck = :projectIdCk  order by map_seq_nbr"/>
+    <finder id="byProjectIdAndEntitytType" where="a.project_id_ck = :projectIdCk and entity_type_fk = :entitytTypeFk  order by map_seq_nbr"/>
+    <finder id="byProjectAndEntitytAndTypeId" where="a.project_id_ck = :projectIdCk and entity_id_fk = :entityIdFk and entity_type_fk = :entityTypeFk  order by map_seq_nbr"/>
+   </table>
+  
+  <query className="Boolean" id="HasGeoFences" noDvo="true"
+   sql='select true from ai_project_entity_geofence where project_id_ck = :projectIdCk and entity_id_fk = :entityIdFk and entity_type_fk = :entityTypeFk'>
+    <finder id="byProjectAndEntitytAndTypeId"/>
+  </query>
+
+
+
+  <query className="Boolean" id="IsMemberOfProject" noDvo="true"
+   sql='select true from ai_project_member where project_id_ck = :projectIdCk and user_id_ck = :userIdCk
+        union
+        select true from ai_project_group pg, ai_user_group_member gm where pg.project_id_ck = :projectIdCk and pg.user_group_id_ck = gm.user_group_id_ck and gm.user_id_ck = :userIdCk'>
+    <finder id="byProjectIdAndUserId"/>
+  </query>
+
+  <query className="Boolean" id="HasReadonlyMembersOrGroups" noDvo="true"
+   sql='select true from ai_project_member where project_id_ck = :projectIdPk and member_perm = &apos;r&apos;
+        union
+        select true from ai_project_group  where project_id_ck = :projectIdPk and group_perm = &apos;r&apos; '>
+    <finder id="byProjectId"/>
+  </query>
+
+
+  <!--User Assets -->
+  <orm baseTable="ai_user_asset" baseTableJoin="a" baseRelationshipsOnly="true" genDvoFromTable="true" inheritClassName="com.ai.aiweb.assets.pbo.AiUserAssetPBO" includeTables="ai_user_asset_tags,ai_user_asset_version,ai_project_folder_asset">
+    <mappingTableConstraint tableName="ai_user_asset_version" where="asset_id_ck = :assetIdPk and version_is_deleted = false  and version_nbr_ck = (select max(version_nbr_ck) from ai_user_asset_version where version_is_deleted = false and asset_id_ck = :assetIdPk)"/>
+    <mappingTableConstraint tableName="ai_project_folder_asset" where="asset_id_ck = :assetIdPk and is_parent_folder_deleted = false "/>
+    <finder id="byName" where="file_category_fk not in( 'AUDIO', 'VIDEO', 'PHOTO' ) and is_deleted = false  and name=:name and owner_id_fk = :ownerIdFk order by created_date desc"/>
+     <finder id="byOwnerId" where="file_category_fk not in( 'AUDIO', 'VIDEO', 'PHOTO' ) and is_deleted = false  and owner_id_fk=:ownerIdFk order by created_date desc"/>
+     <finder id="byTitle" where="file_category_fk not in( 'AUDIO', 'VIDEO', 'PHOTO' ) and is_deleted = false  and title like :title and owner_id_fk = :ownerIdFk order by created_date desc"/>
+     <finder id="byProjectId" where="file_category_fk not in( 'AUDIO', 'VIDEO', 'PHOTO' ) and is_deleted = false  and exists( select 1 from ai_project_folder_asset b where project_id_ck = :projectIdCk and asset_id_ck = asset_id_pk and b.is_parent_folder_deleted = false )"/>
+     <finder id="groupAudioAssets" where="where exists ( select asset_id_ck from ai_user_asset_group_item where user_asset_group_id_ck = :userAssetGroupIdCk and asset_id_pk = :assetIdCk ) and is_deleted = false "/>
+     <finder id="byUserId" where="file_category_fk not in( 'AUDIO', 'VIDEO', 'PHOTO' ) and is_deleted = false and owner_id_fk = :ownerIdFk order by created_date desc"/>
+     <finder id="byAssetFolderId" where="file_category_fk not in( 'AUDIO', 'VIDEO', 'PHOTO' )
+                                  and is_deleted = false  and exists ( select 1 from ai_project_folder_asset where asset_id_pk = asset_id_ck and folder_asset_id_ck = :folderAssetIdFk)"/>
+     <finder id="byGeneric" where="file_category_fk not in( 'AUDIO', 'VIDEO', 'PHOTO' ) and is_deleted = false "/>
+     <finder id="byAll"/>
+    <finder id="byAssetId" where="asset_id_pk = :assetIdPk"/>
+    <finder id="byUploadKey" where="file_category_fk not in( 'AUDIO', 'VIDEO', 'PHOTO' ) and is_deleted = false
+     and exists( select 1 from ai_project_folder_asset b where project_id_ck = :projectIdCk and asset_id_ck = asset_id_pk and b.is_parent_folder_deleted = false )
+     and exists (select folder_asset_id_fk from ai_project_upload_set where project_upload_key_pk =:uploadKey and folder_asset_id_fk = asset_id_pk )"/>
+  </orm>
+
+
+  <table name="ai_audio_asset"  keyGenerationPolicy="none" extends="ai_user_asset"  >
+    <finder id="byName" where="a.file_category_fk = 'AUDIO' and is_deleted = false and a.name=:name and a.owner_id_fk = :ownerIdFk order by a.created_date desc"/>
+    <finder id="byOwnerId" where="a.file_category_fk = 'AUDIO' and is_deleted = false and a.owner_id_fk=:ownerIdFk order by a.created_date desc"/>
+    <finder id="byTitle" where="a.file_category_fk = 'AUDIO' and is_deleted = false and a.title like :title and a.owner_id_fk = :ownerIdFk order by a.created_date desc"/>
+    <finder id="byProjectId" where="a.file_category_fk = 'AUDIO' and is_deleted = false and exists( select 1 from ai_project_folder_asset b where project_id_ck = :projectIdCk and asset_id_ck = a.asset_id_pk and is_parent_folder_deleted = false )"/>
+    <finder id="groupAudioAssets" where="a.file_category_fk = 'AUDIO' and is_deleted = false and exists ( select asset_id_ck from ai_user_asset_group_item where user_asset_group_id_ck = :userAssetGroupIdCk and a.asset_id_pk = :assetIdCk )"/>
+    <finder id="byUserId" where="a.file_category_fk = 'AUDIO' and is_deleted = false and a.owner_id_fk = :ownerIdFk order by a.created_date desc"/>
+    <finder id="byAssetFolderId" where="a.file_category_fk = 'AUDIO' and is_deleted = false and exists ( select 1 from ai_project_folder_asset where a.asset_id_pk = asset_id_ck and folder_asset_id_ck = :folderAssetIdFk)"/>
+    <finder id="byAll" where="a.file_category_fk = 'AUDIO' and is_deleted = false "/>
+    <finder id="byUploadKey" where="a.file_category_fk = 'AUDIO' and is_deleted = false
+     and exists( select 1 from ai_project_folder_asset b where project_id_ck = :projectIdCk and asset_id_ck = a.asset_id_pk and b.is_parent_folder_deleted = false )
+     and exists (select folder_asset_id_fk from ai_project_upload_set where project_upload_key_pk =:uploadKey and folder_asset_id_fk = a.asset_id_pk )"/>
+  </table>
+
+  <table name="ai_video_asset"  keyGenerationPolicy="none"  extends="ai_user_asset">
+    <finder id="byName" where="a.file_category_fk = 'VIDEO' and is_deleted = false  and a.name=:name and a.owner_id_fk = :ownerIdFk order by a.created_date desc"/>
+    <finder id="byOwnerId" where="a.file_category_fk = 'VIDEO' and is_deleted = false  and a.owner_id_fk=:ownerIdFk order by a.created_date desc"/>
+    <finder id="byTitle" where="a.file_category_fk = 'VIDEO' and is_deleted = false  and a.title like :title and a.owner_id_fk = :ownerIdFk order by a.created_date desc"/>
+    <finder id="byProjectId" where="a.file_category_fk = 'VIDEO' and is_deleted = false  and exists( select 1 from ai_project_folder_asset b where project_id_ck = :projectIdCk and asset_id_ck = a.asset_id_pk and is_parent_folder_deleted = false )"/>
+    <finder id="byUserId" where="a.file_category_fk = 'VIDEO' and is_deleted = false  and a.owner_id_fk = :ownerIdFk order by a.created_date desc"/>
+    <finder id="byAssetFolderId" where="a.file_category_fk = 'VIDEO' and is_deleted = false  and exists ( select 1 from ai_project_folder_asset where a.asset_id_pk = asset_id_ck and folder_asset_id_ck = :folderAssetIdFk)"/>
+    <finder id="byAll" where="a.file_category_fk = 'VIDEO' and is_deleted = false "/>
+    <finder id="byUploadKey" where="a.file_category_fk = 'VIDEO' and is_deleted = false
+     and exists( select 1 from ai_project_folder_asset b where project_id_ck = :projectIdCk and asset_id_ck = a.asset_id_pk and b.is_parent_folder_deleted = false )
+     and exists (select folder_asset_id_fk from ai_project_upload_set where project_upload_key_pk =:uploadKey and folder_asset_id_fk = a.asset_id_pk )"/>
+  </table>
+
+  <table name="ai_photo_asset"  keyGenerationPolicy="none" extends="ai_user_asset">
+    <finder id="byName" where="a.file_category_fk = 'PHOTO' and is_deleted = false  and a.name=:name and a.owner_id_fk = :ownerIdFk order by a.created_date desc"/>
+    <finder id="byOwnerId" where="a.file_category_fk = 'PHOTO' and is_deleted = false  and a.owner_id_fk=:ownerIdFk order by a.created_date desc"/>
+    <finder id="byTitle" where="a.file_category_fk = 'PHOTO' and is_deleted = false  and a.title like :title and a.owner_id_fk = :ownerIdFk order by a.created_date desc"/>
+    <finder id="byProjectId" where="a.file_category_fk = 'PHOTO' and is_deleted = false  and exists( select 1 from ai_project_folder_asset b where project_id_ck = :projectIdCk and asset_id_ck = a.asset_id_pk and is_parent_folder_deleted = false )"/>
+    <finder id="byUserId" where="a.file_category_fk = 'PHOTO' and is_deleted = false  and a.owner_id_fk = :ownerIdFk order by a.created_date desc"/>
+    <finder id="byAssetFolderId" where="a.file_category_fk = 'PHOTO' and is_deleted = false  and exists ( select 1 from ai_project_folder_asset where a.asset_id_pk = asset_id_ck and folder_asset_id_ck = :folderAssetIdFk)"/>
+    <finder id="byAll" where="a.file_category_fk = 'PHOTO' and is_deleted = false "/>
+    <finder id="byUploadKey" where="a.file_category_fk = 'PHOTO' and is_deleted = false
+     and exists( select 1 from ai_project_folder_asset b where project_id_ck = :projectIdCk and asset_id_ck = a.asset_id_pk and b.is_parent_folder_deleted = false )
+     and exists (select folder_asset_id_fk from ai_project_upload_set where project_upload_key_pk =:uploadKey and folder_asset_id_fk = a.asset_id_pk )"/>
+  </table>
+
+
+  <!--  Asset skeletons by project -->
+  <query id="ProjectAssetSkel" className="AiUserAssetPBO" package="com.ai.aiweb.assets.pbo" noDvo="true"
+     sql='select asset_id_pk "assetIdPk", title "title", name "name", file_category_fk "fileCategoryFk", image_url_scaled "imageUrlScaled", version_date "versionDate", version_nbr_ck "version",
+              type "type", size "size", url "url", watermarked_url "watermarkedUrl", transcoded_url "transcodedUrl" from ai_user_asset a
+              inner join ai_user_asset_version b on a.asset_id_pk = b.asset_id_ck
+              inner join ai_project_folder_asset c on a.asset_id_pk = c.asset_id_ck
+              where b.version_nbr_ck = (select max( d.version_nbr_ck ) from ai_user_asset_version d where b.asset_id_ck = d.asset_id_ck)
+          	 and is_deleted = false and c.is_parent_folder_deleted = false and project_id_ck = :projectIdPk' >
+
+    <finder id="byProjectId" />
+
+  </query>
+
+  <query id="UpdateAssetVersionFinal"  noDvo="true"
+     sql='update ai_user_asset_version set version_is_final = :versionIsFinal where asset_id_ck = :assetIdCk and version_nbr_ck = :versionNbrCk'>
+    <finder id="byAssetIdAndVersionNbr"/>
+  </query>
+
+  <table name="ai_user_asset_tags"  keyGenerationPolicy="internal">
+    <finder id="byAssetId" where = "asset_id_fk = :assetIdFk"/>
+  </table>
+
+  <table name="ai_user_asset_version" >
+    <finder id="byAssetId" where = "asset_id_ck = :assetIdCk order by version_nbr_ck desc"/>
+    <finder id="byAssetIdAndVersionId" where = "asset_id_ck = :assetIdCk and version_nbr_ck = :versionNbrCk"/>
+    <finder id="byUrlLike" where = "url like :url"/>
+  </table>
+
+  <query id="AssetVersion" className="AiUserAssetVersionPBO" package="com.ai.aiweb.assets.pbo" noDvo="true"
+    sql='select distinct aes_256_key "aes256Key", aes_iv4 "aesIv4" from ai_user_asset_version where url like :url'>
+    <finder id="byUrlLike"/>
+  </query>
+
+  <query id="AssetVersions" className="AiUserAssetVersionPBO" package="com.ai.aiweb.assets.pbo" noDvo="true"
+     sql='select asset_id_ck "assetIdCk", version_nbr_ck "versionNbrCk",  url ,image_url "imageUrl",image_url_scaled "imageUrlScaled", size,
+      version_modified_by_id_fk "versionModifiedByIdFk", version_date "versionDate", version_notes "versionNotes", version_is_deleted "versionIsDeleted",
+      version_date_deleted "versionDateDelete", version_deleted_by_id_fk "versionDeletedByIdFk", reverted_from_version_nbr "revertedFromVersionNbr",
+      concat(u.first_name,&apos; &apos;,u.last_name) "authorName"
+      from ai_user_asset_version v, ai_user u ' >
+
+    <finder id="byAssetId" where="v.asset_id_ck = :assetIdCk and u.user_id_pk = v.version_modified_by_id_fk  order by version_nbr_ck desc"/>
+
+  </query>
+
+  <query id="DeletedAssetIds" className="List&lt;Long>"  noDvo="true"
+          sql = 'select asset_id_pk from ai_user_asset where is_deleted = true and date_deleted &lt; :targetDate and exists
+           ( select 1 from ai_user where user_id_pk = owner_id_fk and organization_id_fk = :oranizationIdPk )' >
+    <finder id="byOrgId"/>
+  </query>
+
+  <query id="DeletedProjectIds" className="List&lt;Long>"  noDvo="true"
+           sql = 'select project_id_pk from ai_project where is_deleted = true and date_deleted &lt; :targetDate and exists
+            ( select 1 from ai_user where user_id_pk = owner_id_fk and organization_id_fk = :oranizationIdPk )' >
+     <finder id="byOrgId"/>
+   </query>
+
+  <query id="OrganizationIds" className="List&lt;Long>"  noDvo="true"
+          sql = 'select organization_id_pk from ai_organization where organization_id_pk >= 100' >
+    <finder id="byAll"/>
+  </query>
+
+  <query id="DeletedAssets" className="AiUserAssetPBO" package="com.ai.aiweb.assets.pbo" noDvo="true"
+          sql = 'select a.asset_id_pk "assetIdPk", a.type, name "name", title "title", a.file_category_fk "fileCategoryFk", v.version_nbr_ck "version" ,a.title,v.version_date "versionDate" , v.size, a.is_deleted "isDeleted",
+          v.version_is_deleted "versionIsDeleted", a.date_deleted as "dateDeleted", v.image_url_scaled "imageUrlScaled" , v.url , v.transcoded_url "transcodedUrl"
+                   from ai_user_asset a , ai_user_asset_version v, ai_project_folder_asset pfa
+                   where pfa.project_id_ck = :projectIdCk and pfa.asset_id_ck = a.asset_id_pk and v.asset_id_ck = a.asset_id_pk and (a.is_deleted = true OR pfa.is_parent_folder_deleted = true)
+                   and v.version_nbr_ck = (select max(v2.version_nbr_ck) from ai_user_asset_version v2 where   v2.asset_id_ck = a.asset_id_pk and  v2.version_is_deleted = false)' >
+    <finder id="byProjectId"/>
+  </query>
+
+
+  <table name="ai_daemon_task" keyGenerationPolicy="none">
+    <finder id="byTaskId" where="daemon_task_type_pk = :taskId"/>
+   </table>
+
+  <table name="ai_daemon_launched_tasks" keyGenerationPolicy="none">
+    <finder id="byTaskId" where="daemon_task_type_fk = :taskId"/>
+   </table>
+
+  <table name="ai_daemon_task_log_type" keyGenerationPolicy="none">
+   </table>
+
+  <table name="ai_daemon_task_run_frequency" keyGenerationPolicy="none">
+   </table>
+
+  <table name="ai_watermark_spec"   genDvoFromTable="true" inheritClassName="com.ai.aiweb.assets.pbo.AiWatermarkSpecPBO" keyGenerationPolicy="none">
+     <finder id="byOrgId" where="organization_id_ck = :organizationIdCk"/>
+     <finder id="byOrgIdAndDocType" where="organization_id_ck = :organizationIdCk and file_category_ck = :fileCategoryCk"/>
+  </table>
+
+
+  <table name="ai_project_event">
+    <finder id="byDate" where="date(begin_date) = :beginDate"/>
+    <finder id="byDateAndType" where="date(event_date) = :beginDate and project_event_type_fk = :projectEventTypeFk"/>
+    <finder id="byDateRange" where="date(event_date) >= :beginDate and date(event_date) &lt;= :endDate"/>
+    <finder id="byDateRangeAndType" where="date(event_date) >= :beginDate and date(event_date) &lt;= :endDate and project_event_type_fk = :projectEventTypeFk"/>
+    <finder id="byUserId" where="user_id_fk = :userIdFk order by event_date desc" />
+    <finder id="byUserIdAndType" where="user_id_fk = :userIdFk and project_event_type_fk = :projectEvenTypeFk"/>
+    <finder id="byUserIdAndDate" where="user_id_fk = :userIdFk and date(event_date) = :eventDate "/>
+    <finder id="byUserIdAndDateRange" where="user_id_fk = :userIdIdFk and date(event_date) >= :beginDate and date(event_date) &lt;= :endDate"/>
+    <finder id="byUserIdAndLimitDateRange" where="user_id_fk = :userIdIdFk and date(event_date) >= :beginDate and date(event_date) &lt;= :endDate limit 250"/>
+    <finder id="byUserIdDateRangeAndType" where="user_id_fk = :userIdFk and date(event_date) >= :beginDate and date(event_date) &lt;= :endDate and project_event_type_fk = :projectEventTypeFk"/>
+    <finder id="byType" where="project_event_type_fk = :projectEventTypeFk"/>
+    <finder id="byUserIdAndCategory" where="user_id_fk = :userIdFk and project_category_fk = :projectCategoryFk  order by begin_date desc" />
+    <finder id="byUserIdAndLimitAndDateRangeAndCategory" where="user_id_fk = :userIdFk and date(event_date) >= :beginDate and date(event_date) &lt;= :endDate and project_category_fk &lt; :projectCategoryFk  order by begin_date desc  limit 250" />
+    <finder id="byEventsAfterId" where="project_event_pk > :projectEventIdPk order by project_event_pk asc"/>
+  </table>
+
+
+  <table name="ai_project_member"  keyGenerationPolicy="none" genDvoFromTable="true" inheritClassName="com.ai.aiweb.project.pbo.AiProjectMemberPBO">
+
+    <finder id="byUserId" where="project_id_ck = :projectIdCk and user_id_ck = :userIdCk"/>
+  </table>
+
+  <query  className="AiProjectMemberPBO" id="ProjectMemberPBO" noDvo="true" package="com.ai.aiweb.project.pbo"
+      sql='select p.project_id_ck "projectIdCk", p.user_id_ck "userIdCk", p.member_perm "memberPerm", u.picture_url "pictureUrl", u.first_name || &apos; &apos; ||  u.last_name "name"
+            from ai_project_member p inner join  ai_user u on p.user_id_ck = u.user_id_pk'>
+    <finder id="byProjectId" where="p.project_id_ck = :projectIdPk and p.user_id_ck = u.user_id_pk" />
+    <finder id="byProjectIdAndUserId" where="p.project_id_ck = :projectIdCk and p.user_id_ck = :userIdCk" />
+  </query>
+
+  <query  className="AiProjectMemberPBO" id="ProjectMemberPermissions" noDvo="true" package="com.ai.aiweb.project.pbo"
+       sql='select u.user_id_pk "userIdCk", pm.member_perm as "memberPerm"
+         from ai_user u, ai_project_member pm , ai_user_credentials c
+         where pm.project_id_ck =  :projectIdCk  and pm.user_id_ck = u.user_id_pk and u.user_id_pk = :userIdCk  and u.user_id_pk = c.user_id_pk and c.is_active = true
+         union
+         select distinct u.user_id_pk "userIdCk", gm.group_perm as "memberPerm"
+         from ai_user u, ai_project_group pg, ai_user_group_member gm , ai_user_credentials c
+         where pg.project_id_ck =  :projectIdCk  and  pg.user_group_id_ck = gm.user_group_id_ck and gm.user_id_ck = u.user_id_pk and u.user_id_pk = :userIdCk and u.user_id_pk = c.user_id_pk and c.is_active = true'>
+     <finder id="byProjectIdAndUserId" />
+   </query>
+
+  <table name="ai_project_group"  keyGenerationPolicy="none" genDvoFromTable="true" inheritClassName="com.ai.aiweb.project.pbo.AiProjectGroupPBO">
+
+    <finder id="byGroupId" where="project_id_ck = :projectIdCk and user_group_id_ck = :userGroupIdCk"/>
+  </table>
+
+
+  <query  className="AiProjectGroupPBO" id="ProjectGroupPBO" noDvo="true" package="com.ai.aiweb.project.pbo"
+      sql='select p.project_id_ck "projectIdCk", p.user_group_id_ck "userGroupIdCk", p.group_perm "groupPerm", g.picture_url "pictureUrl", g.group_name "name"
+                  from ai_project_group p, ai_user_group g'>
+    <finder id="byProjectId" where="p.project_id_ck = :projectIdPk and p.user_group_id_ck = g.user_group_id_pk" />
+  </query>
+
+  <query className="List&lt;Long>" id="ProjectIds" noDvo="true"
+     sql="select project_id_pk from ai_project where exists (select project_id_ck from ai_project_group where user_group_id_ck = :groupIdCk and project_id_pk = project_id_ck ) and is_deleted = false">
+    <finder id="byGroupId"/>
+  </query>
+
+
+  <table name="ai_project_category"  keyGenerationPolicy="none">
+    <finder id="byAll" where="project_category_pk != 'PRIVATE_CONTENT' order by project_category_pk"/>
+  </table>
+
+
+  <table name="ai_blog_entry" genDvoFromTable="true" inheritClassName="com.ai.aiweb.dao.pbo.AiBlogEntryPBO"/>
+
+  <table name="ai_asset_note_blog"  keyGenerationPolicy="none"/>
+
+  <table name="ai_project_note_blog"  keyGenerationPolicy="none"/>
+
+  <table name="ai_audio_annotation"  keyGenerationPolicy="none" genDvoFromTable="true"  inheritClassName="com.ai.aiweb.assets.pbo.AiAudioAnnotationPBO">
+    <finder id="byProjectAndAsset" where="project_id_ck = :projectIdCk and asset_id_ck = :assetIdCk order by time_offset_ck"/>
+    <finder id="byProjectAssetAndUser" where="project_id_ck = :projectIdCk and asset_id_ck = :assetIdCk and user_id_ck = :userIdCk order by time_offset_ck"/>
+  </table>
+
+  <table name="ai_audio_annotation_reply"  keyGenerationPolicy="none" genDvoFromTable="true" inheritClassName="com.ai.aiweb.assets.pbo.AiAudioAnnotationReplyPBO">
+    <finder id="byProjectAssetTimeOffsetAndOwner" where="project_id_ck = :projectIdCk and asset_id_ck = :assetIdCk and owner_id_ck = :ownerIdCk and time_offset_ck = :timeOffsetCk order by reply_seq_ck"/>
+  </table>
+
+
+  <!-- Assets -->
+  <table  name="ai_project_asset_canvas_annotation"  tableAlias="a" keyGenerationPolicy="none" genDvoFromTable="true"
+          inheritClassName="com.ai.aiweb.assets.pbo.AiProjectAssetCanvasCanvasAnnotationPBO">
+    <finder id="byLatestVersion" where="a.project_id_ck = :projectIdCk and a.asset_id_ck = :assetIdCk and a.version_id_ck = (select max(version_id_ck)
+                                        from ai_project_asset_canvas_annotation b where b.project_id_ck = a.project_id_ck
+	                                      and b.asset_id_ck = a.asset_id_ck and a.context_id_ck = b.context_id_ck )"/>
+
+    <finder id="byAllProject" where="project_id_ck = :projectIdCk"/>
+    <finder id="byProjectAndAsset" where="project_id_ck = :projectIdCk and asset_id_ck = :assetIdCk"/>
+    <finder id="byProjectAssetContext" where="project_id_ck = :projectIdCk and asset_id_ck = :assetIdCk and context_id_ck = :contextIdCk"/>
+    <finder id="byProjectAndOwner" where="project_id_ck = :projectIdCk and owner_id_ck = :ownerIdCk order by version_id_ck"/>
+  </table>
+
+  <table name="ai_annotation_comment" keyGenerationPolicy="none" genDvoFromTable="true"
+         inheritClassName="com.ai.aiweb.assets.pbo.AiAnnotationCommentPBO" extends="ai_message">
+    <finder id="byProjectAndAsset" where="project_id_fk = :projectIdFk and asset_id_fk = :assetIdFk"/>
+    <finder id="byProjectAssetAndContextId" where="project_id_fk = :projectIdFk and asset_id_fk = :assetIdFk and context_id = :contextId"/>
+    <finder id="byProjectAssetAndVerNbr" where="project_id_fk = :projectIdFk and asset_id_fk = :assetIdFk and version_id_fk = :versionIdFk"/>
+    <finder id="byProjectAsset" where="project_id_fk = :projectIdFk and asset_id_fk = :assetIdFk"/>
+  </table>
+
+  <table  name="ai_project_asset_3d_annotation"  tableAlias="a" keyGenerationPolicy="none" genDvoFromTable="true"
+          inheritClassName="com.ai.aiweb.assets.pbo.AiProjectAsset3DAnnotationPBO">
+    <finder id="byProjectAndAsset" where="project_id_ck = :projectIdCk and asset_id_ck = :assetIdCk"/>
+    <finder id="byProjectAssetContext" where="project_id_ck = :projectIdCk and asset_id_ck = :assetIdCk and context_id_ck = :contextIdCk"/>
+  </table>
+  
+
+  <table name="ai_annotation_read" keyGenerationPolicy="none" genDvoFromTable="true">
+    <finder id="byProjectAssetAndContextId" where="project_id_ck = :projectIdCk and asset_id_ck = :assetIdCk and context_id_ck = :contextIdCk" />
+  </table>
+
+   <query className="Long" id="UnreadComments" noDvo="true"
+         sql='select count(*) from ai_annotation_comment a
+              inner join ai_message b on a.message_id_pk = b.message_id_pk and b.message_parent_id_fk is null
+              where a.project_id_fk = :projectIdFk and a.asset_id_fk = :assetIdFk and context_id = :contextId and  a.message_id_pk not
+              in (select c.message_id_pk from ai_annotation_comment_read c where user_id_fk = :userIdFk
+              and c.project_id_fk = a.project_id_fk and c.asset_id_fk = a.asset_id_fk and c.context_id = a.context_id
+              and time_read > (select time_created from ai_message d where c.message_id_pk = d.message_id_pk ) )'>
+    <finder id="byProjectAssetContextAndUser"/>
+
+  </query>
+
+  <query className="AiUnReadCommentReply" id="UnreadCommentReplies" package="com.ai.aiweb.assets.dvo" noDvo="true"
+         sql='select a.message_id_pk "messageId", message_parent_id_fk "messageParentId" from ai_annotation_comment a
+              inner join ai_message b on a.message_id_pk = b.message_id_pk and b.message_parent_id_fk is not null
+              where a.project_id_fk = :projectIdFk and a.asset_id_fk = :assetIdFk and a.message_id_pk not in
+               (select c.message_id_pk from ai_annotation_comment_read c where user_id_fk = :userIdFk and project_id_fk = :projectIdFk
+               and asset_id_fk = :assetIdFk and context_id = :contextId and time_read > (select time_created from ai_message d where c.message_id_pk = d.message_id_pk ) )'>
+    <finder id="byProjectAssetContextAndUser"/>
+
+  </query>
+
+  <query className="AiUnReadCommentReply" id="MsgIds" package="com.ai.aiweb.assets.dvo" noDvo="true"
+         sql='select message_id_pk "messageId", message_parent_id_fk "messageParentId" from ai_message where message_parent_id_fk = :messageParentId'>
+    <finder id="byMessgaeParent"/>
+
+  </query>
+
+  <table name="ai_annotation_comment_read" keyGenerationPolicy="none" genDvoFromTable="true">
+    <finder id="byUserIdProjectAssetAndContextId" where="user_id_fk = :userIdFk and project_id_fk = :projectIdFk and asset_id_fk = :assetIdFk and context_id = :contextId" />
+  </table>
+
+  <query className="Long" id="AnnotationCommentCount" noDvo="true"
+     sql="select count(*) from ai_annotation_comment a inner join ai_message b on a.message_id_pk = b.message_id_pk and b.message_parent_id_fk is null
+          where project_id_fk = :projectIdFk and asset_id_fk = :assetIdFk and context_id = :contextId">
+    <finder id="byProjectIdAndAssetId"/>
+  </query>
+
+  <query className="List&lt;String>" id="CanvasContextIds" noDvo="true"
+         sql="select context_id_ck from ai_project_asset_canvas_annotation where project_id_ck = :projectIdCk and asset_id_ck = :assetIdCk">
+    <finder id="byProjectAndAsset"/>
+  </query>
+
+  <query className="List&lt;String>" id="3DContextIds" noDvo="true"
+         sql="select context_id_ck from ai_project_asset_3d_annotation where project_id_ck = :projectIdCk and asset_id_ck = :assetIdCk">
+    <finder id="byProjectAndAsset"/>
+  </query>
+
+  <query id="DeleteComments" noDvo="true"
+         sql="delete from ai_message a where exists (select message_id_pk from ai_annotation_comment b where a.message_id_pk = b.message_id_pk
+  and project_id_fk = :projectId and asset_id_fk = :assetId )">
+    <finder id="byProjectIdAndAssetId"/>
+  </query>
+
+
+  <table name="ai_3d_model_asset_dependency_map" keyGenerationPolicy="none" genDvoFromTable="true">
+    <finder id="byAssetId" where="asset_model_id_ck = :assetModelIdCk"/>
+    <finder id="byAssetAndNodeId" where="asset_model_id_ck = :assetModelIdCk and model_node_id_ck = :modelNodeIdCk"/>
+  </table>
+
+  <table name="ai_3d_model_node_texture_asset_map" keyGenerationPolicy="none" genDvoFromTable="true">
+    <finder id="byAssetId" where="asset_model_id_ck = :assetModelIdCk"/>
+    <finder id="byAssetAndNodeId" where="asset_model_id_ck = :assetModelIdCk and model_node_id_ck = :modelNodeIdCk"/>
+  </table>
+
+  <table name="ai_user_asset_group">
+    <finder id="byType" where="user_id_fk = :userIdFk and type_fk = :typeFk"/>
+    <finder id="byUserIdAndListItAssets" where="user_id_fk = :userIdFk and type_fk in ('AA','VS') and user_asset_group_id_pk in (
+    select user_asset_group_id_pk from ai_user_asset_group g, ai_user_asset_group_item i, ai_user_asset a where g.user_id_fk =:userIdFk and g.type_fk in ('AA','VS')
+    and g.user_asset_group_id_pk = i.user_asset_group_id_ck
+    and i.asset_id_ck = a.asset_id_pk and a.type in ('wav','aiff','mov','mp4','avi','m4v')
+    and user_asset_group_id_pk not in (select asset_group_id_fk from ai_user_listing where user_id_fk = :userIdFk and asset_group_id_fk is not null))
+     "/>
+    <finder id="byAssetGroupId" where="user_asset_group_id_pk = :userAssetGroupIdPk "/>
+    <finder id="byUserId" where="user_id_fk = :userIdFk "/>
+  </table>
+
+  <table name="ai_user_asset_group_item" genDvoFromTable="true" inheritClassName="com.ai.aiweb.assets.pbo.AiUserAssetGroupItemPBO">
+    <finder id="byGroupId" where="user_asset_group_id_ck = :userAssetGroupIdCk"/>
+    <finder id="byGroupAndAssetId" where="user_asset_group_id_ck = :userAssetGroupIdCk and asset_id_ck = :assetIdCk"/>
+  </table>
+
+
+  <query className="AiUserAssetGroupItemPBO" package="com.ai.aiweb.assets.pbo" id="GroupAssetListItems" noDvo="true"
+         sql='select b.order_index "orderIndex", b.user_asset_group_id_ck "userAssetGroupIdCk", asset_id_pk "assetIdPk"
+                               , b.asset_id_ck "assetIdCk", owner_id_fk "ownerIdFk"
+                               , file_category_fk "fileCategoryFk"
+                               , name "name", type "type", title "title", summary "summary"
+                              , created_date "createdDate", modified_date "modifiedDate"
+                                from ai_user_asset a
+                                join ai_user_asset_group_item b on a.asset_id_pk = b.asset_id_ck
+               where b.user_asset_group_id_ck = :userAssetGroupIdCk order by b.order_index'>
+         <finder id="byUserAssetGroup"/>
+   </query>
+
+
+
+  <!-- Blog query for assets -->
+  <query  className="AiBlogEntryPBO" package="com.ai.aiweb.dao.pbo" id="BlogEntryByAsset" noDvo="true"
+            sql='select
+                blog_entry_id_pk "blogEntryIdPk", posted_by_id_fk "postedByIdFk"
+                , date_of_blog "dateOfBlog", blog_text "blogText", first_name "firstName", last_name "lastName",
+                picture_url "pictureUrl" from ai_blog_entry, ai_user, ai_asset_note_blog
+                where asset_id_ck = :assetIdCk and blog_entry_id_ck = blog_entry_id_pk and  posted_by_id_fk = user_id_pk order by date_of_blog desc '>
+    <finder id="byAssetId"/>
+  </query>
+
+  <!-- Blog query for projects -->
+
+  <query  className="AiBlogEntryPBO" package="com.ai.aiweb.dao.pbo" id="BlogEntryByProject" noDvo="true"
+          sql='select
+                  blog_entry_id_pk "blogEntryIdPk", posted_by_id_fk "postedByIdFk"
+                  , date_of_blog "dateOfBlog", blog_text "blogText", first_name "firstName", last_name "lastName",
+                  picture_url "pictureUrl" from ai_blog_entry, ai_user, ai_project_note_blog
+                  where project_id_ck = :projectIdCk and blog_entry_id_ck = blog_entry_id_pk and  posted_by_id_fk = user_id_pk order by date_of_blog desc'>
+          <finder id="byProjectId"/>
+  </query>
+
+
+
+  <table name="ai_user_security_event">
+    <finder id="byUserId" where="user_id_fk = :userIdIdFk"/>
+    <finder id="activeByUserId" where="user_id_fk = :userIdIdFk and is_active = 'true'" />
+    <finder id="activeLockoutByUserId" where="user_id_fk = :userIdIdFk and is_active = 'true' and security_event_type_fk = 'PASSWORD_LOCKOUT'" />
+    <finder id="byAuthorizationToken" where="context_data = :authToken" />
+    <finder id="AccountSettingsByUserId" where="user_id_fk = :userIdFk and security_event_type_fk in ('LOGIN','LOGIN_ATTEMPT') order by security_event_date desc limit 20 "/>
+  </table>
+
+
+  <table name="ai_genre" keyGenerationPolicy="none">
+    <finder id="byFileType" where="file_category_ck = :fileCategoryCk order by genre_name asc" />
+  </table>
+
+  <table name="ai_eccn_registry" keyGenerationPolicy="none">
+    <finder id="byEccn" where="eccn_pk = :eccnPk" />
+    <finder id="byAll"  where="order by description asc"/>
+  </table>
+
+  <table name="ai_usml_registry" keyGenerationPolicy="none">
+    <finder id="byAll"  where="order by category_pk asc"/>
+  </table>
+
+  <table name="ai_eccn_classification_types" keyGenerationPolicy="none">
+    <finder id="byAll" where="order by seq"/>
+  </table>
+  
+  <table name="ai_admin_security_event"/>
+
+
+  <table name="ai_user_asset_delete_history" keyGenerationPolicy="none"/>
+
+
+  <table name="ai_support_message_type"/>
+
+  <table name="ai_user_support_message"/>
+
+  <table name="ai_project_activity_view"/>
+
+
+  <table name="ai_topic_subscriber" keyGenerationPolicy="none" >
+   <finder id="byTopicId" where="topic = :topic"/>
+   <finder id="byUserSessionIdAndTopic" where="user_session_id = :userSessionId and topic = :topic"/>
+   <finder id="byUserSessionId" where="topic_type_fk in ('USER_SESSION', 'GUEST_SESSION') and user_session_id = :userSessionId"/>
+   <finder id="byOrgId" where="org_id_fk = :orgIdFk"/>
+   <finder id="byUserId" where="user_id_fk = :userIdFk"/>
+   <finder id="byUserIdAndDeviceType" where="user_id_fk = :userIdFk and device_type = :deviceType"/>
+   <finder id="byUserSessionAndOrgId" where="topic_type_fk in ('USER_SESSION', 'GUEST_SESSION') and org_id_fk = :orgIdFk" />
+   <finder id="byUserSessionUserIdAndDeviceType" where="topic_type_fk in ('USER_SESSION', 'GUEST_SESSION') and user_id_fk = :userIdFk and device_type = :deviceType" />
+   <finder id="byUserSessionUserId" where="topic_type_fk in ('USER_SESSION', 'GUEST_SESSION') and user_id_fk = :userIdFk" />
+   <finder id="byExpired" where="topic is not null and expire_time_enabled = true and expire_time &lt;= :currentTime" />
+  </table>
+
+
+  <query  className="AiTopicSubscriber" id="AllUserSessions" noDvo="true" package="com.ai.aiweb.dao.dvo"
+       sql='delete from ai_topic_subscriber' >
+     <finder id="byUserId" where="user_d_fk = :userIdFk" />
+   </query>
+
+  <query className="AiFilePrintPBO" id="FilePrintPBOAll" noDvo="true" package="com.ai.aiweb.user.pbo"
+         sql='select &apos;Auth&apos; || e.event_id_pk "eventId" , &apos;&apos; "projectName", &apos;&apos; "assetName",u.picture_url "pictureUrl",
+                      (u.first_name || &apos; &apos; || u.last_name) "userName" , e.security_event_date "eventDate", &apos;AUTHENTICATION&apos; "eventCategory",
+                       &apos;fileprint_&apos; ||  e.security_event_type_fk "eventType", e.session_data "sessionData" , e.user_id_fk "userId"
+               	   from ai_user_security_event e, ai_user u
+               	   where u.user_id_pk = e.user_id_fk  and  e.user_id_fk = :userIdFk and date(security_event_date) >= :beginDate and date(security_event_date) &lt;= :endDate
+                    and e.security_event_type_fk in (&apos;LOGIN&apos;,&apos;LOGOUT&apos;,&apos;RESET_PASSWORD&apos;,&apos;FORGOT_PASSWORD&apos;,&apos;RESET_TWO_FACTOR&apos;,&apos;PASSWORD_LOCKOUT&apos;)
+       union
+       		 select &apos;Proj&apos; || e.project_share_event_pk "eventId", e.description "projectName" ,e.context_data "assetName", &apos;&apos; "pictureUrl",
+             coalesce(trim(r.name::text),r.email_address::text)::text "userName", e.event_date "eventDate",&apos;SHARE_CENTER&apos; "eventCategory",
+             &apos;fileprint_&apos; || e.project_share_event_type_fk "eventType",  null "sessionData" , 0 "userId"
+      	   from ai_project_share_event e, ai_project_share_recipient r , ai_project p
+		        where e.recipient_id = r.recipient_id_pk
+            and p.owner_id_fk = :userIdFk and p.is_deleted = false
+       union
+         select &apos;Proj&apos; || e.project_event_pk "eventId", e.description "projectName" ,e.context_data "assetName", u.picture_url "pictureUrl",
+             (u.first_name ||  &apos; &apos; || u.last_name) "userName", e.event_date "eventDate",e.project_category_fk "eventCategory",
+             &apos;fileprint_&apos; || e.project_event_type_fk "eventType",  e.session_data "sessionData" , e.user_id_fk "userId"
+      	   from ai_project_event e, ai_user u
+      	    where u.user_id_pk = e.user_id_fk
+      		and date(event_date) >= :beginDate and date(event_date) &lt;= :endDate
+      and e.project_id_fk in
+      (
+      select project_id_pk "projectIdPk" from ai_project a, ai_user c
+                                 where a.owner_id_fk = c.user_id_pk and a.is_deleted = false and exists ( select 1 from ai_project p where owner_id_fk = :userIdFk and a.project_id_pk = p.project_id_pk union select 1 from ai_project_member b where a.project_id_pk = b.project_id_ck and user_id_ck = :userIdFk)
+                               union
+                               select project_id_pk from ai_project b, ai_user c
+                                 where b.owner_id_fk = c.user_id_pk and b.is_deleted = false and b.project_id_pk in (select project_id_ck from ai_project_group where user_group_id_ck in( select a.user_group_id_pk from ai_user_group a where
+                                  exists ( select 1 from ai_user_group_member where a.user_group_id_pk = user_group_id_ck and user_id_ck = :userIdFk ))))
+
+       order by "eventDate" desc  LIMIT 250 OFFSET :infiniteScrollIndex'>
+    <finder id="byUserId" />
+  </query>
+
+
+
+
+  <query className="AiFilePrintPBO" id="FilePrintPBOProjects" noDvo="true" package="com.ai.aiweb.user.pbo"
+         sql='select e.project_event_pk "eventId", e.description "projectName" ,e.context_data "assetName", u.picture_url "pictureUrl",
+             (u.first_name ||  &apos; &apos; || u.last_name) "userName", e.event_date "eventDate",e.project_category_fk "eventCategory",
+             &apos;fileprint_&apos; || e.project_event_type_fk "eventType",  e.session_data "sessionData" , e.user_id_fk "userId"
+      	   from ai_project_event e, ai_user u
+      	    where u.user_id_pk = e.user_id_fk
+      		and date(event_date) >= :beginDate and date(event_date) &lt;= :endDate  and e.project_category_fk = :projectCategoryFk
+      and e.project_id_fk in
+      (
+      select project_id_pk "projectIdPk" from ai_project a, ai_user c
+                                 where a.owner_id_fk = c.user_id_pk and a.is_deleted = false and exists ( select 1 from ai_project p where owner_id_fk = :userIdFk and a.project_id_pk = p.project_id_pk union select 1 from ai_project_member b where a.project_id_pk = b.project_id_ck and user_id_ck = :userIdFk)
+                               union
+                               select project_id_pk from ai_project b, ai_user c
+                                 where b.owner_id_fk = c.user_id_pk and b.is_deleted = false and b.project_id_pk in (select project_id_ck from ai_project_group where user_group_id_ck in( select a.user_group_id_pk from ai_user_group a where
+                                  exists ( select 1 from ai_user_group_member where a.user_group_id_pk = user_group_id_ck and user_id_ck = :userIdFk ))))
+
+       order by e.event_date desc  LIMIT 250 OFFSET :infiniteScrollIndex'>
+    <finder id="byUserIdAndProjectCategory" />
+  </query>
+
+  <query className="AiFilePrintPBO" id="FilePrintPBOForProjectActivity" noDvo="true" package="com.ai.aiweb.user.pbo"
+         sql='select e.project_event_pk "eventId", e.description "projectName" ,e.context_data "assetName", u.picture_url "pictureUrl",
+             (u.first_name ||  &apos; &apos; || u.last_name) "userName", e.event_date "eventDate",e.project_category_fk "eventCategory",
+             &apos;fileprint_&apos; || e.project_event_type_fk "eventType",  e.session_data "sessionData" , e.user_id_fk "userId"
+      	    from ai_project_event e, ai_user u
+      	    where u.user_id_pk = e.user_id_fk
+      	    and e.project_id_fk = :projectIdFk
+      		  and date(event_date) > :beginDate
+            order by e.event_date desc  LIMIT 250 OFFSET :infiniteScrollIndex'>
+    <finder id="byUserIdAndProjectId" />
+  </query>
+
+  
+
+  <query className="AiFilePrintPBO" id="FilePrintPBOAuthentication" noDvo="true" package="com.ai.aiweb.user.pbo"
+      sql='select e.event_id_pk "eventId" , u.picture_url "pictureUrl",
+             (u.first_name || &apos; &apos; || u.last_name) "userName" , e.security_event_date "eventDate", &apos;AUTHENTICATION&apos; "eventCategory",
+              &apos;fileprint_&apos; ||  e.security_event_type_fk "eventType", e.session_data "sessionData" , e.user_id_fk "userId"
+      	   from ai_user_security_event e, ai_user u
+      	   where u.user_id_pk = e.user_id_fk  and  e.user_id_fk = :userIdFk and date(security_event_date) >= :beginDate and date(security_event_date) &lt;= :endDate
+           and e.security_event_type_fk in (&apos;LOGIN&apos;,&apos;LOGOUT&apos;,&apos;RESET_PASSWORD&apos;,&apos;FORGOT_PASSWORD&apos;,&apos;RESET_TWO_FACTOR&apos;,&apos;PASSWORD_LOCKOUT&apos;)
+      	   order by security_event_date desc limit 250 OFFSET :infiniteScrollIndex'>
+    <finder id="byUserId" />
+  </query>
+
+  
+  <table name="ai_system_error">
+    <finder id="byErrorId" where="error_id_pk =:errorIdPk"/>
+  </table>
+
+  <table name="ai_country_codes">
+    <finder id="byName" where="name ilike :name"/>
+    <finder id="byIsoCode" where="iso_code_pk ilike :isoCode"/>
+  </table>
+
+  <table name="ai_storage_location">
+    <finder id="byOrganizationId" where="organization_id_ck = :organizationIdPk"/>
+  </table>
+
+  <table name="ai_industry_types">
+    <finder id="byAll"/>
+  </table>
+
+  <table name="ai_organization_secondary_storage">
+    <finder id="byOrganizationId" where="organization_id_ck = :organizationIdPk"/>
+    <finder id="byOrganizationIdAndCountryCode" where="organization_id_ck = :organizationId and storage_id_ck in (select storage_id_pk from ai_storage_location where country_code_fk = :countryCode)  "/>
+  </table>
+
+  <table name="ai_file_type"/>
+
+  <table name="ai_file_category"/>
+
+  <table name="ai_document_viewer"/>
+
+  <table name="ai_chat_room">
+   <finder id="byChatRoomId" where="where chat_room_id_pk = :chatRoomIdPk"/>
+  </table>
+
+  <table name="ai_chat_room_member" keyGenerationPolicy="none" inheritClassName="com.ai.aiweb.p2p.pbo.AiChatRoomMemberPBO">
+    <finder id="byUserId" where="where chat_room_id_ck = :chatRoomIdCk and user_id_ck = :userIdCk"/>
+    <finder id="byRoomId" where="where chat_room_id_ck = :chatRoomIdCk"/>
+  </table>
+
+  <table name="ai_chat_room_active_mic_camera_queue" keyGenerationPolicy="none">
+    <finder id="byChatRoomId" where="where chat_room_id_ck = :chatRoomIdCk"/>
+  </table>
+
+  <query className="Long" id="ChatRoomActiveMicQueueCount" noDvo="true"
+         sql="select count(*) from ai_chat_room_active_mic_camera_queue where chat_room_id_ck = :chatRoomIdCk">
+    <finder id="byChatRoomId"/>
+  </query>
+
+  <query className="String" id="ChatRoomActiveMicNextInQueue" noDvo="true"
+         sql="select user_id_ck from ai_chat_room_active_mic_camera_queue where chat_room_id_ck = :chatRoomIdCk and queue_nbr_ck =
+                  (select min(queue_nbr_ck) from ai_chat_room_active_mic_camera_queue where chat_room_id_ck = :chatRoomIdCk)" >
+    <finder id="byChatRoomId"/>
+  </query>
+
+  <query id="ClearChatRoomActiveMicQueue" noDvo="true"
+         sql="delete from ai_chat_room_active_mic_camera_queue where chat_room_id_ck = :chatRoomIdCk">
+    <finder id="byChatRoomId"/>
+  </query>
+
+  <query id="DeleteChatRoomActiveMicNextInQueue" noDvo="true"
+    sql="delete from ai_chat_room_active_mic_camera_queue where chat_room_id_ck = :chatRoomIdCk and user_id_ck = :userIdCk">
+    <finder id="byChatRoomAndUserId"/>
+  </query>
+
+  <table name="ai_log4j" keyGenerationPolicy="none">
+    <finder id="byLogLevel" where="where log_level = :logLevel"/>
+    <finder id="byCategory" where="where log_category = :logCategory"/>
+    <finder id="byDateTime" where="where log_date_time_pk >= :logDateTimePk"/>
+
+  </table>
+
+  <table name="ai_project_notification_daemon">
+    <finder id="byLastExecuted" where="last_run_date = (select max(last_run_date) from ai_project_notification_daemon)"/>
+  </table>
+
+  <query className="Long" id="ProjectMembersCount" noDvo="true"
+      sql="select count(*) from ai_user where  user_id_pk in
+      (
+      select user_id_ck from ai_project_member where project_id_ck = :projectIdPk
+      union
+      select uc.user_id_pk from ai_project_group g, ai_user_group_member gm, ai_user_credentials uc where g.project_id_ck = :projectIdPk
+      and g.user_group_id_ck = gm.user_group_id_ck
+      and gm.user_id_ck = uc.user_id_pk
+      and uc.is_active = true
+      and uc.is_deleted = false)">
+     <finder id="byProjectId"/>
+   </query>
+  <query className="Long" id="ProjectDownloadsCount" noDvo="true"
+         sql="select count(*) from ai_project_event where project_event_type_fk = &apos;ASSET_DOWNLOAD&apos; and project_id_fk = :projectIdPk">
+     <finder id="byProjectId"/>
+   </query>
+  <query className="Long" id="ProjectUploadsCount" noDvo="true"
+      sql="select count(*) from ai_project_event where project_event_type_fk in (&apos;ASSET_ADD&apos;,&apos;ASSET_VERSION&apos;) and project_id_fk = :projectIdPk">
+     <finder id="byProjectId"/>
+   </query>
+
+  <query className="Long" id="ProjectFilesCount" noDvo="true"
+      sql="select count(*) from ai_user_asset where asset_id_pk in
+      (select a.asset_id_pk
+      from ai_project_folder_asset pf, ai_user_asset a
+      where a.is_deleted = false
+      and pf.is_sym_link = false
+      and pf.project_id_ck = :projectIdPk
+      and pf.asset_id_ck = a.asset_id_pk
+      and a.file_category_fk != 'FOLDER')">
+     <finder id="byProjectId"/>
+   </query>
+
+  <query className="Long" id="ProjectDashboardFilesAccessed" noDvo="true"
+      sql="select count(*) from ai_project_event where project_event_type_fk = &apos;ASSET_ACCESS&apos; and project_id_fk = :projectIdPk and event_date > :sessionDate  ">
+     <finder id="byProjectIdAndDate"/>
+   </query>
+
+  <query className="Long" id="ProjectDashboardPermissionsModified" noDvo="true"
+      sql="select count(*) from ai_project_event where project_event_type_fk in (&apos;MEMBER_ADD&apos;,&apos;MEMBER_PERM&apos;,&apos;MEMBER_DEL&apos;,&apos;GROUP_ADD&apos;,&apos;GROUP_PERM&apos;,&apos;GROUP_DEL&apos;) and project_id_fk = :projectIdPk  and event_date > :sessionDate">
+     <finder id="byProjectIdAndDate"/>
+   </query>
+
+  <query className="List&lt;Long>"  id="ProjectIdList" noDvo="true"
+         sql="select project_id_pk from ai_project where owner_id_fk = :userIdPk">
+    <finder id="byOwnerId"/>
+  </query>
+
+
+   <query className="List&lt;Long>"  id="ProjectDashboardUserList" noDvo="true"
+          sql="select user_id_ck from ai_project_dashboard where project_id_ck = :projectIdPk">
+     <finder id="byProjectId"/>
+   </query>
+
+  <query className="AiProjectDashboardCommentAnnotationPBO" id="ProjectDashboardComments" package="com.ai.aiweb.project.pbo" noDvo="true"
+         sql='select count(*) "count", a.asset_id_pk "assetId" , project_id_fk "projectId",  a.name, v.image_url_scaled "imageUrlScaled"
+         from ai_annotation_comment c, ai_user_asset_version v,  ai_user_asset a
+         where project_id_fk = :projectIdPk
+         and c.asset_id_fk = v.asset_id_ck
+         and a.asset_id_pk = v.asset_id_ck
+         and v.version_is_deleted = false
+         and v.version_nbr_ck = (select max(version_nbr_ck) from ai_user_asset_version where version_is_deleted = false and asset_id_ck = c.asset_id_fk)
+         and c.date_last_maint  > :sessionDate
+         group by asset_id_pk, project_id_fk ,v.image_url_scaled order by 1 desc'>
+    <finder id="byProjectIdAndDate" />
+  </query>
+
+  <query className="AiProjectDashboardCommentAnnotationPBO" id="ProjectDashboardAnnotations" package="com.ai.aiweb.project.pbo" noDvo="true"
+         sql='select count(*) "count", a.asset_id_pk "assetId", project_id_ck "projectId" , a.name, v.image_url_scaled "imageUrlScaled"
+         from ai_project_asset_canvas_annotation annotation, ai_user_asset_version v,  ai_user_asset a
+         where project_id_ck = :projectIdPk and annotation.asset_id_ck = v.asset_id_ck and a.asset_id_pk = v.asset_id_ck and v.version_is_deleted = false
+         and v.version_nbr_ck = (select max(version_nbr_ck) from ai_user_asset_version where version_is_deleted = false and asset_id_ck = annotation.asset_id_ck)
+         and annotation.date_last_maint  >  :sessionDate
+         group by asset_id_pk, project_id_ck,v.image_url_scaled
+         union
+         select count(*) "count", a.asset_id_pk "assetId", project_id_ck "projectId" , a.name, v.image_url_scaled "imageUrlScaled"
+         from ai_project_asset_3d_annotation annotation, ai_user_asset_version v,  ai_user_asset a
+         where project_id_ck = :projectIdPk and annotation.asset_id_ck = v.asset_id_ck and a.asset_id_pk = v.asset_id_ck and v.version_is_deleted = false
+         and v.version_nbr_ck = (select max(version_nbr_ck) from ai_user_asset_version where version_is_deleted = false and asset_id_ck = annotation.asset_id_ck)
+         and annotation.date_last_maint  > :sessionDate
+         group by asset_id_pk,project_id_ck, v.image_url_scaled'>
+    <finder id="byProjectIdAndDate"/>
+  </query>
+
+</sqlMappingSpec>
+

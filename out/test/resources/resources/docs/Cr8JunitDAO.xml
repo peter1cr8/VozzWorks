@@ -1,0 +1,30 @@
+<sqlMappingSpec author="VozzWorks"
+                sqlMappingDocument="./src/test/resources/resources/docs/Cr8JunitDAO.xsm"
+                keyGenerationPolicy="postgres_seq"
+                sequenceName="%t_PKSeq"
+                omitColumns="date_last_maint">
+
+  <jsonPropertyGlob  from="$Pk" to=""/>
+  <jsonPropertyGlob  from="$Fk" to=""/>
+  <jsonPropertyGlob  from="$Ck" to=""/>
+
+   <objectProperties basepath="./src/test/java" package="com.vozzware.db.dao.dvo"
+                    useJavaObjects="true" useDirtyObjectDetection="true"/>
+
+  <daoProperties package="com.vozzware.db.dao" typePrefix="Ai,Cr8" typeSuffix="PBO"/>
+
+  <query id="UserWithAddress" className="Cr8UserAddress"
+         sql='select first_name "firstName", last_name "lastName", street_address "streetAddress", city "city", postal_code "postalCode"
+           from junit_user a, junit_address b where a.id_pk = b.id_ck and a.id_pk = :id'>
+
+    <finder id="byUserId"/>
+
+  </query>
+
+  <table name="junit_user" genDvoFromTable="true" >
+    <jsonAlias name="idPk" value="id"/>
+  </table>
+  <table name="junit_address" keyGenerationPolicy="none" genDvoFromTable="true" ></table>
+
+</sqlMappingSpec>
+

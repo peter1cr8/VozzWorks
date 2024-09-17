@@ -1,0 +1,17 @@
+<DriverList>
+
+  <driver id="POSTGRES" driverClass="org.postgresql.Driver" desc="Postgres JDBC Driver" >
+
+    <!-- Connection URL's -->
+    <url id="LOCAL" target="jdbc:postgresql://localhost/Cr8Db" pool="cr8Local_pool"/>
+
+    <url id="JUNIT" target="jdbc:postgresql://localhost/Cr8JunitDb" cred="file:///var/cr8web/.cred/junitCred.properties"/>
+    <!-- SchemsObjectMapper urls -->
+    <!--<url id="SCHEMA_MAPPER_local" target="jdbc:postgresql://localhost/Cr8JunitDb" cred="file:///var/cr8web/.cred/junitCred.properties"/> -->
+    <url id="SCHEMA_MAPPER_local" target="jdbc:postgresql://localhost/Cr8JunitDb" cred="file:///var/cr8web/.cred/junitCred.properties"/>
+    <!-- Connection Pool settings -->
+    <connectionPool id="cr8Local_pool" min="5" max="10"  cred="file:///var/cr8web/.cred/localCred.properties"/>
+
+  </driver>
+
+</DriverList>

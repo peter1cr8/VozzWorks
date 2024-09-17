@@ -1,0 +1,42 @@
+plugins
+{
+  id 'java'
+}
+
+
+defaultTasks 'dist'
+
+tasks.register( "dist", Copy )
+        {
+          from 'build/libs'
+          into 'dist'
+
+          dependsOn clean, jar
+        }
+
+
+java {
+  toolchain {
+    languageVersion.set(JavaLanguageVersion.of(17))
+  }
+}
+
+
+repositories
+{
+  mavenCentral()
+
+}
+
+dependencies
+{
+  implementation fileTree('lib') {
+    include '*.jar'
+  }
+
+  implementation('org.springframework.security:spring-security-crypto:5.7.1')
+  implementation('org.bouncycastle:bcpkix-jdk18on:1.76')
+
+  compileOnly 'org.apache.tomcat:tomcat-catalina:9.0.53'
+}
+
