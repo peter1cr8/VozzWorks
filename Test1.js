@@ -10,7 +10,14 @@ function Test1()
 
   function configObject()
   {
-    console.log( "In Config")
+    console.log( "In Config");
+    show();
+  }
+
+  function show()
+  {
+    console.log( "In show");
+
   }
 } // end Test1
 
