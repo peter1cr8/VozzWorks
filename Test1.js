@@ -12,4 +12,6 @@ function Test1()
   {
     console.log( "In Config")
   }
-}
+} // end Test1
+
+export default Test1;
