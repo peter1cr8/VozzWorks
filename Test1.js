@@ -11,7 +11,12 @@ function Test1()
   function configObject()
   {
     console.log( "In Config");
-    const ll = 1;
+    show();
+  }
+
+  function show()
+  {
+    console.log( "In show");
   }
 } // end Test1
 
