@@ -1,5 +1,5 @@
 out/
 build/
 dist/
-gradle/
+.gradle/
 .DS_*
