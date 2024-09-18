@@ -10,7 +10,8 @@ function Test1()
 
   function configObject()
   {
-    console.log( "In Config")
+    console.log( "In Config");
+    const ll = 1;
   }
 } // end Test1
 
